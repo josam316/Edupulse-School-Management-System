@@ -1,0 +1,2283 @@
+<!DOCTYPE html>
+<html lang="en" class="light dark"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIxNzIwNzM1MjMwMjkyODg3MjYzMCIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjX2NiMjQ0NTg1YTIxZDE1N2RfaW5kZXguaHRtbC04MTIifSwiZXhwIjoxNzkyNjc2NDEwLCJpYXQiOjE3OTI2NzI4MTAsImFsZyI6IlJTMjU2In0.c30YETiMrMcaqVRDiWdBxwpx2We0IOGpxg2XcNtrhoyEEE85IMoGL2A7l-5onikECCYfsUWyT9bFhjDP6zgWFb37ajjpMtRQbYpPCVC4FJW41ImdsOOHTY68TF1GWufVO8OnqBJGK2Hg1mGCgMA9xWyDoyPoFWmUzNoIjo6YInstLzBk1DzG-uRcCTeQleuSNgB0qDMjQC8nAAsb45cWqQRRc1ERLFbgTEM2iDd61Tt_Iv73ie1MqsS5Hi4Px3MgyvhtxuDAMfp7nIl7qcUDkFB99reKpdBR7g8lJOdMuUyjTsfK0S9brcR9-4rKubZ5sjRqHYuAwxX67LTkq7QRwA","c_cb244585a21d157d_index.html-812")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduPulse SMS - Enterprise Liquid Glass Edition</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" crossorigin="anonymous"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#eef2ff', 100: '#e0e7ff', 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.5); border-radius: 9999px; }
+        .dark ::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.6); }
+
+        /* --- LIQUID GLASS VISUAL ENGINE STYLES --- */
+        .liquid-glass-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 35%, #311042 70%, #0f172a 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating Animated Liquid Blobs */
+        .liquid-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            animation: floatOrb 20s infinite ease-in-out alternate;
+            pointer-events: none;
+        }
+        .orb-1 { width: 350px; height: 350px; background: #6366f1; top: -10%; left: -10%; animation-duration: 18s; }
+        .orb-2 { width: 400px; height: 400px; background: #ec4899; bottom: -15%; right: -10%; animation-duration: 22s; animation-delay: -5s; }
+        .orb-3 { width: 280px; height: 280px; background: #10b981; top: 40%; left: 60%; animation-duration: 16s; animation-delay: -8s; }
+
+        @keyframes floatOrb {
+            0% { transform: translate(0px, 0px) scale(1) rotate(0deg); }
+            33% { transform: translate(60px, -80px) scale(1.15) rotate(120deg); }
+            66% { transform: translate(-40px, 50px) scale(0.9) rotate(240deg); }
+            100% { transform: translate(0px, 0px) scale(1) rotate(360deg); }
+        }
+
+        /* Pure Glassmorphic Container Layer */
+        .liquid-glass-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px) saturate(190%);
+            -webkit-backdrop-filter: blur(25px) saturate(190%);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .liquid-glass-input {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .liquid-glass-input:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(129, 140, 248, 0.8);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.35);
+        }
+
+        .liquid-glass-button {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.85) 0%, rgba(79, 70, 229, 0.9) 100%);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.5);
+            transition: all 0.3s ease;
+        }
+        .liquid-glass-button:hover {
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 15px 30px -5px rgba(79, 70, 229, 0.7);
+        }
+
+        /* Main Dashboard Glass Cards */
+        .app-glass-card {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .dark .app-glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(51, 65, 85, 0.6);
+        }
+
+        @media print {
+            body * { visibility: hidden; }
+            #printable-area, #printable-area * { visibility: visible; }
+            #printable-area { position: absolute; left: 0; top: 0; width: 100%; }
+        }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:Inter, sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.pointer-events-auto{pointer-events:auto}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0px}.left-3\.5{left:0.875rem}.right-3\.5{right:0.875rem}.right-5{right:1.25rem}.top-0{top:0px}.top-1\/2{top:50%}.top-5{top:1.25rem}.right-2\.5{right:0.625rem}.right-4{right:1rem}.top-4{top:1rem}.z-10{z-index:10}.z-40{z-index:40}.z-50{z-index:50}.mx-auto{margin-left:auto;margin-right:auto}.mb-1\.5{margin-bottom:0.375rem}.ml-2{margin-left:0.5rem}.mr-1{margin-right:0.25rem}.mt-2{margin-top:0.5rem}.mb-4{margin-bottom:1rem}.mt-1{margin-top:0.25rem}.mb-1{margin-bottom:0.25rem}.mb-2{margin-bottom:0.5rem}.mt-0\.5{margin-top:0.125rem}.block{display:block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-6{height:1.5rem}.h-9{height:2.25rem}.h-60{height:15rem}.max-h-48{max-height:12rem}.max-h-60{max-height:15rem}.max-h-\[90vh\]{max-height:90vh}.min-h-screen{min-height:100vh}.w-9{width:2.25rem}.w-full{width:100%}.w-px{width:1px}.w-64{width:16rem}.min-w-\[240px\]{min-width:240px}.max-w-7xl{max-width:80rem}.max-w-md{max-width:28rem}.max-w-lg{max-width:32rem}.max-w-xl{max-width:36rem}.flex-1{flex:1 1 0%}.flex-grow{flex-grow:1}.border-collapse{border-collapse:collapse}.-translate-y-1\/2{--tw-translate-y:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.space-x-1 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.25rem * var(--tw-space-x-reverse));margin-left:calc(0.25rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-2 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.5rem * var(--tw-space-x-reverse));margin-left:calc(0.5rem * calc(1 - var(--tw-space-x-reverse)))}.space-x-3 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.75rem * var(--tw-space-x-reverse));margin-left:calc(0.75rem * calc(1 - var(--tw-space-x-reverse)))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem * var(--tw-space-y-reverse))}.space-x-1\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-x-reverse:0;margin-right:calc(0.375rem * var(--tw-space-x-reverse));margin-left:calc(0.375rem * calc(1 - var(--tw-space-x-reverse)))}.divide-y > :not([hidden]) ~ :not([hidden]){--tw-divide-y-reverse:0;border-top-width:calc(1px * calc(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(1px * var(--tw-divide-y-reverse))}.divide-slate-200\/80 > :not([hidden]) ~ :not([hidden]){border-color:rgb(226 232 240 / 0.8)}.divide-slate-200 > :not([hidden]) ~ :not([hidden]){--tw-divide-opacity:1;border-color:rgb(226 232 240 / var(--tw-divide-opacity, 1))}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-full{border-radius:9999px}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-slate-200\/60{border-color:rgb(226 232 240 / 0.6)}.border-slate-200\/80{border-color:rgb(226 232 240 / 0.8)}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.border-white\/20{border-color:rgb(255 255 255 / 0.2)}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1))}.border-amber-200{--tw-border-opacity:1;border-color:rgb(253 230 138 / var(--tw-border-opacity, 1))}.bg-brand-50{--tw-bg-opacity:1;background-color:rgb(238 242 255 / var(--tw-bg-opacity, 1))}.bg-brand-600{--tw-bg-opacity:1;background-color:rgb(79 70 229 / var(--tw-bg-opacity, 1))}.bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.bg-indigo-500\/20{background-color:rgb(99 102 241 / 0.2)}.bg-red-100{--tw-bg-opacity:1;background-color:rgb(254 226 226 / var(--tw-bg-opacity, 1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.bg-slate-100\/80{background-color:rgb(241 245 249 / 0.8)}.bg-slate-200{--tw-bg-opacity:1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.bg-white\/10{background-color:rgb(255 255 255 / 0.1)}.bg-white\/80{background-color:rgb(255 255 255 / 0.8)}.bg-amber-50{--tw-bg-opacity:1;background-color:rgb(255 251 235 / var(--tw-bg-opacity, 1))}.bg-blue-50{--tw-bg-opacity:1;background-color:rgb(239 246 255 / var(--tw-bg-opacity, 1))}.bg-emerald-50{--tw-bg-opacity:1;background-color:rgb(236 253 245 / var(--tw-bg-opacity, 1))}.bg-indigo-600{--tw-bg-opacity:1;background-color:rgb(79 70 229 / var(--tw-bg-opacity, 1))}.bg-purple-50{--tw-bg-opacity:1;background-color:rgb(250 245 255 / var(--tw-bg-opacity, 1))}.bg-purple-600{--tw-bg-opacity:1;background-color:rgb(147 51 234 / var(--tw-bg-opacity, 1))}.bg-slate-100\/70{background-color:rgb(241 245 249 / 0.7)}.bg-slate-50\/50{background-color:rgb(248 250 252 / 0.5)}.bg-emerald-100{--tw-bg-opacity:1;background-color:rgb(209 250 229 / var(--tw-bg-opacity, 1))}.bg-indigo-100{--tw-bg-opacity:1;background-color:rgb(224 231 255 / var(--tw-bg-opacity, 1))}.bg-indigo-50{--tw-bg-opacity:1;background-color:rgb(238 242 255 / var(--tw-bg-opacity, 1))}.bg-slate-100\/60{background-color:rgb(241 245 249 / 0.6)}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-900\/60{background-color:rgb(15 23 42 / 0.6)}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-brand-600{--tw-gradient-from:#4f46e5 var(--tw-gradient-from-position);--tw-gradient-to:rgb(79 70 229 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-indigo-600{--tw-gradient-to:rgb(79 70 229 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #4f46e5 var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-purple-600{--tw-gradient-to:#9333ea var(--tw-gradient-to-position)}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.object-cover{object-fit:cover}.p-1\.5{padding:0.375rem}.p-2{padding:0.5rem}.p-2\.5{padding:0.625rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.p-8{padding:2rem}.p-3{padding:0.75rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}.py-6{padding-top:1.5rem;padding-bottom:1.5rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-4{padding-top:1rem;padding-bottom:1rem}.pl-10{padding-left:2.5rem}.pr-10{padding-right:2.5rem}.pr-3{padding-right:0.75rem}.pt-1{padding-top:0.25rem}.pt-4{padding-top:1rem}.pl-9{padding-left:2.25rem}.pb-3{padding-bottom:0.75rem}.pb-4{padding-bottom:1rem}.pl-3{padding-left:0.75rem}.pr-1{padding-right:0.25rem}.pr-8{padding-right:2rem}.pt-2{padding-top:0.5rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-sans{font-family:Inter, sans-serif}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.text-2xl{font-size:1.5rem;line-height:2rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-base{font-size:1rem;line-height:1.5rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.leading-tight{line-height:1.25}.tracking-tight{letter-spacing:-0.025em}.tracking-wider{letter-spacing:0.05em}.text-brand-700{--tw-text-opacity:1;color:rgb(67 56 202 / var(--tw-text-opacity, 1))}.text-indigo-100{--tw-text-opacity:1;color:rgb(224 231 255 / var(--tw-text-opacity, 1))}.text-indigo-200\/60{color:rgb(199 210 254 / 0.6)}.text-indigo-200\/80{color:rgb(199 210 254 / 0.8)}.text-indigo-200\/90{color:rgb(199 210 254 / 0.9)}.text-indigo-300{--tw-text-opacity:1;color:rgb(165 180 252 / var(--tw-text-opacity, 1))}.text-indigo-600{--tw-text-opacity:1;color:rgb(79 70 229 / var(--tw-text-opacity, 1))}.text-red-500{--tw-text-opacity:1;color:rgb(239 68 68 / var(--tw-text-opacity, 1))}.text-red-600{--tw-text-opacity:1;color:rgb(220 38 38 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6 / var(--tw-text-opacity, 1))}.text-blue-600{--tw-text-opacity:1;color:rgb(37 99 235 / var(--tw-text-opacity, 1))}.text-brand-500{--tw-text-opacity:1;color:rgb(99 102 241 / var(--tw-text-opacity, 1))}.text-emerald-500{--tw-text-opacity:1;color:rgb(16 185 129 / var(--tw-text-opacity, 1))}.text-emerald-600{--tw-text-opacity:1;color:rgb(5 150 105 / var(--tw-text-opacity, 1))}.text-purple-600{--tw-text-opacity:1;color:rgb(147 51 234 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.text-amber-500{--tw-text-opacity:1;color:rgb(245 158 11 / var(--tw-text-opacity, 1))}.text-amber-800{--tw-text-opacity:1;color:rgb(146 64 14 / var(--tw-text-opacity, 1))}.text-brand-600{--tw-text-opacity:1;color:rgb(79 70 229 / var(--tw-text-opacity, 1))}.text-emerald-700{--tw-text-opacity:1;color:rgb(4 120 87 / var(--tw-text-opacity, 1))}.text-indigo-700{--tw-text-opacity:1;color:rgb(67 56 202 / var(--tw-text-opacity, 1))}.text-slate-900{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.underline{-webkit-text-decoration-line:underline;text-decoration-line:underline}.placeholder-indigo-200\/40::placeholder{color:rgb(199 210 254 / 0.4)}.shadow-inner{--tw-shadow:inset 0 2px 4px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:inset 0 2px 4px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow{--tw-shadow:0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 1px 3px 0 var(--tw-shadow-color), 0 1px 2px -1px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-brand-500\/20{--tw-shadow-color:rgb(99 102 241 / 0.2);--tw-shadow:var(--tw-shadow-colored)}.ring-2{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.ring-brand-500\/30{--tw-ring-color:rgb(99 102 241 / 0.3)}.drop-shadow{--tw-drop-shadow:drop-shadow(0 1px 2px rgb(0 0 0 / 0.1)) drop-shadow(0 1px 1px rgb(0 0 0 / 0.06));filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.drop-shadow-md{--tw-drop-shadow:drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-xl{--tw-backdrop-blur:blur(24px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-colors{transition-property:color, background-color, border-color, fill, stroke, -webkit-text-decoration-color;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, -webkit-text-decoration-color;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-200{transition-duration:200ms}.hover\:border-black:hover{--tw-border-opacity:1;border-color:rgb(0 0 0 / var(--tw-border-opacity, 1))}.hover\:border-emerald-500:hover{--tw-border-opacity:1;border-color:rgb(16 185 129 / var(--tw-border-opacity, 1))}.hover\:bg-emerald-700:hover{--tw-bg-opacity:1;background-color:rgb(4 120 87 / var(--tw-bg-opacity, 1))}.hover\:bg-red-200:hover{--tw-bg-opacity:1;background-color:rgb(254 202 202 / var(--tw-bg-opacity, 1))}.hover\:bg-red-50:hover{--tw-bg-opacity:1;background-color:rgb(254 242 242 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-200:hover{--tw-bg-opacity:1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.hover\:bg-white\/20:hover{background-color:rgb(255 255 255 / 0.2)}.hover\:bg-brand-700:hover{--tw-bg-opacity:1;background-color:rgb(67 56 202 / var(--tw-bg-opacity, 1))}.hover\:bg-indigo-700:hover{--tw-bg-opacity:1;background-color:rgb(67 56 202 / var(--tw-bg-opacity, 1))}.hover\:bg-purple-700:hover{--tw-bg-opacity:1;background-color:rgb(126 34 206 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-300:hover{--tw-bg-opacity:1;background-color:rgb(203 213 225 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-900:hover{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.hover\:text-slate-600:hover{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.focus\:ring-2:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.focus\:ring-indigo-500:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(99 102 241 / var(--tw-ring-opacity, 1))}.focus\:ring-brand-500:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(99 102 241 / var(--tw-ring-opacity, 1))}.dark\:block:is(.dark *){display:block}.dark\:hidden:is(.dark *){display:none}.dark\:divide-slate-700\/80:is(.dark *) > :not([hidden]) ~ :not([hidden]){border-color:rgb(51 65 85 / 0.8)}.dark\:divide-slate-700:is(.dark *) > :not([hidden]) ~ :not([hidden]){--tw-divide-opacity:1;border-color:rgb(51 65 85 / var(--tw-divide-opacity, 1))}.dark\:border-slate-700\/60:is(.dark *){border-color:rgb(51 65 85 / 0.6)}.dark\:border-slate-700\/80:is(.dark *){border-color:rgb(51 65 85 / 0.8)}.dark\:border-slate-700:is(.dark *){--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.dark\:border-amber-800\/50:is(.dark *){border-color:rgb(146 64 14 / 0.5)}.dark\:bg-brand-900\/40:is(.dark *){background-color:rgb(49 46 129 / 0.4)}.dark\:bg-red-900\/30:is(.dark *){background-color:rgb(127 29 29 / 0.3)}.dark\:bg-slate-700:is(.dark *){--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.dark\:bg-slate-800\/80:is(.dark *){background-color:rgb(30 41 59 / 0.8)}.dark\:bg-slate-900:is(.dark *){--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.dark\:bg-slate-900\/80:is(.dark *){background-color:rgb(15 23 42 / 0.8)}.dark\:bg-amber-900\/30:is(.dark *){background-color:rgb(120 53 15 / 0.3)}.dark\:bg-blue-900\/30:is(.dark *){background-color:rgb(30 58 138 / 0.3)}.dark\:bg-emerald-900\/30:is(.dark *){background-color:rgb(6 78 59 / 0.3)}.dark\:bg-purple-900\/30:is(.dark *){background-color:rgb(88 28 135 / 0.3)}.dark\:bg-slate-900\/70:is(.dark *){background-color:rgb(15 23 42 / 0.7)}.dark\:bg-slate-900\/50:is(.dark *){background-color:rgb(15 23 42 / 0.5)}.dark\:bg-brand-900\/30:is(.dark *){background-color:rgb(49 46 129 / 0.3)}.dark\:bg-emerald-900\/40:is(.dark *){background-color:rgb(6 78 59 / 0.4)}.dark\:bg-indigo-900\/30:is(.dark *){background-color:rgb(49 46 129 / 0.3)}.dark\:bg-slate-800:is(.dark *){--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.dark\:bg-slate-900\/60:is(.dark *){background-color:rgb(15 23 42 / 0.6)}.dark\:text-red-400:is(.dark *){--tw-text-opacity:1;color:rgb(248 113 113 / var(--tw-text-opacity, 1))}.dark\:text-slate-100:is(.dark *){--tw-text-opacity:1;color:rgb(241 245 249 / var(--tw-text-opacity, 1))}.dark\:text-slate-300:is(.dark *){--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.dark\:text-amber-400:is(.dark *){--tw-text-opacity:1;color:rgb(251 191 36 / var(--tw-text-opacity, 1))}.dark\:text-blue-400:is(.dark *){--tw-text-opacity:1;color:rgb(96 165 250 / var(--tw-text-opacity, 1))}.dark\:text-emerald-400:is(.dark *){--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.dark\:text-purple-400:is(.dark *){--tw-text-opacity:1;color:rgb(192 132 252 / var(--tw-text-opacity, 1))}.dark\:text-slate-200:is(.dark *){--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.dark\:text-amber-300:is(.dark *){--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.dark\:text-emerald-300:is(.dark *){--tw-text-opacity:1;color:rgb(110 231 183 / var(--tw-text-opacity, 1))}.dark\:text-white:is(.dark *){--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.dark\:hover\:border-white:hover:is(.dark *){--tw-border-opacity:1;border-color:rgb(255 255 255 / var(--tw-border-opacity, 1))}.dark\:hover\:bg-red-900\/20:hover:is(.dark *){background-color:rgb(127 29 29 / 0.2)}.dark\:hover\:bg-slate-600:hover:is(.dark *){--tw-bg-opacity:1;background-color:rgb(71 85 105 / var(--tw-bg-opacity, 1))}.dark\:hover\:bg-slate-800:hover:is(.dark *){--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}@media (min-width: 640px){.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.sm\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.sm\:flex-row{flex-direction:row}.sm\:items-center{align-items:center}}@media (min-width: 768px){.md\:flex{display:flex}}@media (min-width: 1024px){.lg\:block{display:block}.lg\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}.lg\:px-8{padding-left:2rem;padding-right:2rem}}</style></head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-200">
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- AUTHENTICATION SCREEN WITH LIQUID GLASS EFFECT -->
+    <div id="auth-screen" class="fixed inset-0 z-50 liquid-glass-bg flex items-center justify-center p-4 hidden">
+        <!-- Floating Ambient Liquid Orbs -->
+        <div class="liquid-orb orb-1"></div>
+        <div class="liquid-orb orb-2"></div>
+        <div class="liquid-orb orb-3"></div>
+
+        <div class="liquid-glass-card rounded-3xl max-w-md w-full p-8 space-y-6 relative z-10">
+            <!-- Header Logo & Title -->
+            <div class="text-center space-y-2">
+                <div class="inline-flex items-center justify-center p-3.5 bg-indigo-500/20 rounded-2xl border border-white/20 shadow-inner backdrop-blur-md">
+                    <i class="fa-solid fa-graduation-cap text-3xl text-indigo-300 drop-shadow"></i>
+                </div>
+                <h2 class="text-3xl font-extrabold tracking-tight text-white drop-shadow-md">EduPulse OS</h2>
+                <p class="text-xs text-indigo-200/80 font-medium">Enterprise Production System</p>
+            </div>
+
+            <!-- Login Form -->
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-indigo-100 mb-1.5">Username or Registered Email</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-200/60 text-xs"></i>
+                        <input type="text" id="login-identifier" required="" placeholder="user@domain.com" class="w-full liquid-glass-input rounded-xl pl-10 pr-3 py-2.5 text-xs focus:outline-none placeholder-indigo-200/40">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-indigo-100 mb-1.5">Password</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-indigo-200/60 text-xs"></i>
+                        <input type="password" id="login-password" required="" placeholder="Enter password" class="w-full liquid-glass-input rounded-xl pl-10 pr-10 py-2.5 text-xs focus:outline-none placeholder-indigo-200/40">
+                        <button type="button" onclick="togglePasswordVisibility('login-password', this)" class="absolute right-3.5 top-1/2 -translate-y-1/2 text-indigo-200/60 hover:text-white text-xs">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-xs pt-1">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="login-remember" class="rounded border-white/20 text-indigo-600 focus:ring-indigo-500 bg-white/10">
+                        <span class="text-indigo-200/90 text-[11px]">Keep me signed in</span>
+                    </label>
+                    <a href="#" onclick="showToast('Password recovery instructions requested.', 'info')" class="text-indigo-300 hover:text-white font-medium text-[11px] underline">Forgot Key?</a>
+                </div>
+
+                <button type="submit" class="w-full liquid-glass-button text-white font-bold py-3 rounded-xl text-xs tracking-wider uppercase">
+                    Sign In to Production System
+                </button>
+            </form>
+
+            <!-- Production System Account Initialization -->
+            <div class="border-t border-white/10 pt-4 text-center">
+                <p class="text-[11px] text-indigo-200/80">Need an initial admin system account?</p>
+                <button onclick="registerProductionAdmin()" class="mt-2 px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl text-xs font-bold transition">
+                    <i class="fa-solid fa-user-plus mr-1"></i> Register Primary Administrator
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="app-wrapper" class="min-h-screen flex flex-col">
+        <!-- GLOBAL NAVIGATION BAR -->
+        <header class="sticky top-0 z-40 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-700/80 px-4 lg:px-8 py-3">
+            <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="bg-brand-600 text-white p-2 rounded-2xl shadow-lg shadow-brand-500/20">
+                        <i class="fa-solid fa-graduation-cap text-lg"></i>
+                    </div>
+                    <div>
+                        <span id="header-school-brand" class="text-xl font-black bg-gradient-to-r from-brand-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">EduPulse</span>
+                        <span id="header-role-badge" class="ml-2 text-[10px] px-2.5 py-0.5 bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300 rounded-full font-bold uppercase tracking-wider">Admin</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs (RBAC Dynamic) -->
+                <nav id="nav-menu" class="hidden md:flex items-center space-x-1 bg-slate-100/80 dark:bg-slate-900/80 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 text-xs font-semibold backdrop-blur-md"><button class="px-3.5 py-1.5 rounded-xl flex items-center space-x-1.5 transition hover:bg-slate-200 dark:hover:bg-slate-800" id="nav-tab-overview"><i class="fa-solid fa-gauge"></i><span>Overview</span></button><button class="px-3.5 py-1.5 rounded-xl flex items-center space-x-1.5 transition hover:bg-slate-200 dark:hover:bg-slate-800" id="nav-tab-teachers"><i class="fa-solid fa-chalkboard-user"></i><span>Faculty</span></button><button class="px-3.5 py-1.5 rounded-xl flex items-center space-x-1.5 transition hover:bg-slate-200 dark:hover:bg-slate-800" id="nav-tab-students"><i class="fa-solid fa-user-graduate"></i><span>Students</span></button><button class="px-3.5 py-1.5 rounded-xl flex items-center space-x-1.5 transition hover:bg-slate-200 dark:hover:bg-slate-800" id="nav-tab-grading"><i class="fa-solid fa-pen-to-square"></i><span>Gradebook</span></button><button class="px-3.5 py-1.5 rounded-xl flex items-center space-x-1.5 transition hover:bg-slate-200 dark:hover:bg-slate-800" id="nav-tab-billing"><i class="fa-solid fa-file-invoice-dollar"></i><span>Billing</span></button><button class="px-3.5 py-1.5 rounded-xl flex items-center space-x-1.5 transition bg-brand-600 text-white shadow-md" id="nav-tab-settings"><i class="fa-solid fa-gear"></i><span>Settings</span></button></nav>
+
+                <!-- User Profile & Controls -->
+                <div class="flex items-center space-x-3">
+                    <button onclick="openModal('modal-deploy')" title="Deploy Application" class="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-md flex items-center gap-1.5">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>Deploy App</span>
+                    </button>
+                    <button onclick="toggleDarkMode()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition">
+                        <i class="fa-solid fa-sun hidden dark:block"></i>
+                        <i class="fa-solid fa-moon block dark:hidden"></i>
+                    </button>
+                    <button onclick="resetSystemData()" title="Reset All Data" class="p-2.5 rounded-xl bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400 hover:bg-red-200 transition">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                    <div class="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+                    <div class="flex items-center space-x-3">
+                        <img id="nav-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100" class="w-9 h-9 rounded-xl object-cover ring-2 ring-brand-500/30" alt="Avatar">
+                        <div class="hidden lg:block text-left leading-tight">
+                            <p id="nav-user-name" class="text-xs font-bold text-slate-800 dark:text-slate-100">Primary Administrator</p>
+                            <p id="nav-user-email" class="text-[10px] text-slate-400">josam2403@gmail.com</p>
+                        </div>
+                        <button onclick="handleLogout()" title="Sign Out" class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD CONTAINER -->
+        <main class="flex-grow max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
+
+            <!-- 1. DASHBOARD OVERVIEW PANEL -->
+            <section id="tab-overview" class="tab-content space-y-6 hidden">
+                <!-- Advanced Dynamic Search & Quick Actions -->
+                <div class="app-glass-card p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4 shadow-sm">
+                    <div class="relative flex-1 min-w-[240px]">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="global-search-input" oninput="handleGlobalSearch(this.value)" placeholder="Global System Search (Students, Teachers, Invoices...)" class="w-full bg-slate-100/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="openModal('modal-attendance')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-clipboard-user"></i> Quick Attendance
+                        </button>
+                        <button onclick="triggerBroadcastNotice()" class="bg-purple-600 hover:bg-purple-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow-md transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-bullhorn"></i> Announcement
+                        </button>
+                    </div>
+                </div>
+
+                <!-- KPI Cards Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="app-glass-card p-5 rounded-2xl shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Active Enrolments</p>
+                                <h3 id="kpi-students-count" class="text-2xl font-black mt-1">0</h3>
+                            </div>
+                            <div class="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl">
+                                <i class="fa-solid fa-user-graduate text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="app-glass-card p-5 rounded-2xl shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Faculty Staff</p>
+                                <h3 id="kpi-teachers-count" class="text-2xl font-black mt-1">0</h3>
+                            </div>
+                            <div class="p-3 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-2xl">
+                                <i class="fa-solid fa-chalkboard-user text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="app-glass-card p-5 rounded-2xl shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Revenue Ledger</p>
+                                <h3 id="kpi-revenue" class="text-2xl font-black mt-1">$0</h3>
+                            </div>
+                            <div class="p-3 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-2xl">
+                                <i class="fa-solid fa-sack-dollar text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="app-glass-card p-5 rounded-2xl shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Avg Attendance Rate</p>
+                                <h3 id="kpi-attendance-rate" class="text-2xl font-black text-emerald-600 mt-1">96.4%</h3>
+                            </div>
+                            <div class="p-3 bg-amber-50 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-2xl">
+                                <i class="fa-solid fa-calendar-check text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="app-glass-card p-5 rounded-2xl shadow-sm">
+                        <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-brand-500"></i> Enrollment Trends &amp; Growth
+                        </h3>
+                        <div class="h-60"><canvas id="chart-enrollment" width="888" height="240" style="display: block; box-sizing: border-box; height: 240px; width: 888px;"></canvas></div>
+                    </div>
+                    <div class="app-glass-card p-5 rounded-2xl shadow-sm">
+                        <h3 class="font-bold text-sm mb-4 text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-pie text-emerald-500"></i> Fee Collection Analytics
+                        </h3>
+                        <div class="h-60 flex justify-center"><canvas id="chart-fees" width="888" height="240" style="display: block; box-sizing: border-box; height: 240px; width: 888px;"></canvas></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. TEACHERS CRUD MODULE -->
+            <section id="tab-teachers" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">Faculty &amp; Teachers Management</h1>
+                        <p class="text-xs text-slate-500">Full CRUD operations for teaching staff and login authorization</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="exportTableToCSV('teachers')" class="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-3.5 py-2 rounded-xl text-xs font-semibold hover:bg-slate-300 transition">
+                            <i class="fa-solid fa-file-csv mr-1"></i> Export CSV
+                        </button>
+                        <button onclick="openModal('modal-teacher')" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition">
+                            <i class="fa-solid fa-plus mr-1"></i> Add Faculty
+                        </button>
+                    </div>
+                </div>
+
+                <div class="app-glass-card rounded-2xl shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-slate-200/80 dark:border-slate-700/80 flex flex-wrap gap-2 justify-between">
+                        <input type="text" id="teacher-search" oninput="renderTeachersTable()" placeholder="Search teacher name, subject, email..." class="bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 text-xs rounded-xl px-3 py-2 w-64 focus:outline-none">
+                        <select id="teacher-dept-filter" onchange="renderTeachersTable()" class="bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 text-xs rounded-xl px-3 py-2">
+                            <option value="all">All Departments</option>
+                            <option value="Primary Education">Primary Education</option>
+                            <option value="Science">Science</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="Languages">Languages</option>
+                            <option value="Social Studies">Social Studies</option>
+                            <option value="Arts">Arts</option>
+                        </select>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50/50 dark:bg-slate-900/50 text-slate-500 border-b border-slate-200 dark:border-slate-700">
+                                    <th class="p-3.5 font-bold">Teacher Name</th>
+                                    <th class="p-3.5 font-bold">Department</th>
+                                    <th class="p-3.5 font-bold">Subject Lead</th>
+                                    <th class="p-3.5 font-bold">Phone Contact</th>
+                                    <th class="p-3.5 font-bold">Account Pass</th>
+                                    <th class="p-3.5 font-bold">Status</th>
+                                    <th class="p-3.5 font-bold text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teachers-table-body" class="divide-y divide-slate-200/80 dark:divide-slate-700/80"><tr><td colspan="7" class="p-4 text-center text-slate-400">No faculty records found. Click "Add Faculty" to register teachers.</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. STUDENTS CRUD MODULE -->
+            <section id="tab-students" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">Student Directory &amp; Profiles</h1>
+                        <p class="text-xs text-slate-500">Enrolments, academic tracking, course selections, and guardian contacts</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="exportTableToCSV('students')" class="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-3.5 py-2 rounded-xl text-xs font-semibold hover:bg-slate-300 transition">
+                            <i class="fa-solid fa-file-csv mr-1"></i> Export CSV
+                        </button>
+                        <button onclick="openModal('modal-student')" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition">
+                            <i class="fa-solid fa-user-plus mr-1"></i> Enroll Student
+                        </button>
+                    </div>
+                </div>
+
+                <div class="app-glass-card rounded-2xl shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-slate-200/80 dark:border-slate-700/80 flex flex-wrap gap-2 justify-between">
+                        <input type="text" id="student-search" oninput="renderStudentsTable()" placeholder="Search name or ID..." class="bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 text-xs rounded-xl px-3 py-2 w-64 focus:outline-none">
+                        <select id="student-grade-filter" onchange="renderStudentsTable()" class="bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 text-xs rounded-xl px-3 py-2">
+                            <option value="all">All Grades</option>
+                            <optgroup label="Primary Level">
+                                <option value="Grade 1">Grade 1 (P1)</option>
+                                <option value="Grade 2">Grade 2 (P2)</option>
+                                <option value="Grade 3">Grade 3 (P3)</option>
+                                <option value="Grade 4">Grade 4 (P4)</option>
+                                <option value="Grade 5">Grade 5 (P5)</option>
+                                <option value="Grade 6">Grade 6 (P6)</option>
+                                <option value="Grade 7">Grade 7 (P7)</option>
+                            </optgroup>
+                            <optgroup label="Secondary Level">
+                                <option value="Grade 10">Grade 10</option>
+                                <option value="Grade 11">Grade 11</option>
+                                <option value="Grade 12">Grade 12</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50/50 dark:bg-slate-900/50 text-slate-500 border-b border-slate-200 dark:border-slate-700">
+                                    <th class="p-3.5 font-bold">Student Profile</th>
+                                    <th class="p-3.5 font-bold">ID Code</th>
+                                    <th class="p-3.5 font-bold">Grade</th>
+                                    <th class="p-3.5 font-bold">Enrolled Subjects</th>
+                                    <th class="p-3.5 font-bold">Guardian Email</th>
+                                    <th class="p-3.5 font-bold">Calculated GPA</th>
+                                    <th class="p-3.5 font-bold">Tuition Status</th>
+                                    <th class="p-3.5 font-bold text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="students-table-body" class="divide-y divide-slate-200/80 dark:divide-slate-700/80"><tr><td colspan="8" class="p-4 text-center text-slate-400">No student enrollments found. Click "Enroll Student" to create records.</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. GRADING & REPORT CARDS MODULE -->
+            <section id="tab-grading" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">Gradebook &amp; Class Marksheets</h1>
+                        <p class="text-xs text-slate-500">Live mark updates, automated GPA formulas, and report cards</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <select id="marksheet-class-select" onchange="renderGradebookTable()" class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs rounded-xl px-3 py-2 font-semibold">
+                            <option value="all">All Classes / Grades</option>
+                            <optgroup label="Primary Level">
+                                <option value="Grade 1">Grade 1 (P1)</option>
+                                <option value="Grade 2">Grade 2 (P2)</option>
+                                <option value="Grade 3">Grade 3 (P3)</option>
+                                <option value="Grade 4">Grade 4 (P4)</option>
+                                <option value="Grade 5">Grade 5 (P5)</option>
+                                <option value="Grade 6">Grade 6 (P6)</option>
+                                <option value="Grade 7">Grade 7 (P7)</option>
+                            </optgroup>
+                            <optgroup label="Secondary Level">
+                                <option value="Grade 10">Grade 10</option>
+                                <option value="Grade 11">Grade 11</option>
+                                <option value="Grade 12">Grade 12</option>
+                            </optgroup>
+                        </select>
+                        <button onclick="exportClassMarksheet()" class="bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 px-3.5 py-2 rounded-xl text-xs font-semibold hover:bg-slate-300 transition">
+                            <i class="fa-solid fa-file-csv mr-1"></i> Export Marksheet
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="app-glass-card p-4 rounded-2xl shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400">Class Average</p>
+                            <h4 id="marksheet-class-avg" class="text-xl font-bold mt-0.5">--</h4>
+                        </div>
+                        <div class="p-2.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-xl">
+                            <i class="fa-solid fa-calculator text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="app-glass-card p-4 rounded-2xl shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400">Highest Score</p>
+                            <h4 id="marksheet-highest-score" class="text-xl font-bold text-emerald-600 mt-0.5">--</h4>
+                        </div>
+                        <div class="p-2.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 rounded-xl">
+                            <i class="fa-solid fa-trophy text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="app-glass-card p-4 rounded-2xl shadow-sm flex items-center justify-between">
+                        <div>
+                            <p class="text-xs font-semibold text-slate-400">Class Count</p>
+                            <h4 id="marksheet-total-students" class="text-xl font-bold text-brand-600 mt-0.5">0</h4>
+                        </div>
+                        <div class="p-2.5 bg-brand-50 dark:bg-brand-900/30 text-brand-600 rounded-xl">
+                            <i class="fa-solid fa-users text-lg"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="app-glass-card rounded-2xl p-5 space-y-4 shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50/50 dark:bg-slate-900/50 text-slate-500 border-b border-slate-200 dark:border-slate-700">
+                                    <th class="p-3.5 font-bold">Student Name</th>
+                                    <th class="p-3.5 font-bold">Class / Grade</th>
+                                    <th class="p-3.5 font-bold">Midterm (40%)</th>
+                                    <th class="p-3.5 font-bold">Assignments (30%)</th>
+                                    <th class="p-3.5 font-bold">Final Exam (30%)</th>
+                                    <th class="p-3.5 font-bold">Overall Score</th>
+                                    <th class="p-3.5 font-bold">Grade</th>
+                                    <th class="p-3.5 font-bold text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gradebook-table-body" class="divide-y divide-slate-200 dark:divide-slate-700"><tr><td colspan="8" class="p-4 text-center text-slate-400">No marksheet records available. Enroll students to enable grade tracking.</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. FINANCIAL & INVOICING MODULE -->
+            <section id="tab-billing" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold tracking-tight">Fee Ledger &amp; Invoicing</h1>
+                        <p class="text-xs text-slate-500">Student tuition invoicing, payments, and financial auditing</p>
+                    </div>
+                    <button onclick="openModal('modal-invoice')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-semibold shadow-md transition">
+                        <i class="fa-solid fa-file-invoice-dollar mr-1"></i> Issue New Invoice
+                    </button>
+                </div>
+
+                <div class="app-glass-card rounded-2xl shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50/50 dark:bg-slate-900/50 text-slate-500 border-b border-slate-200 dark:border-slate-700">
+                                    <th class="p-3.5 font-bold">Invoice #</th>
+                                    <th class="p-3.5 font-bold">Student Name</th>
+                                    <th class="p-3.5 font-bold">Billing Description</th>
+                                    <th class="p-3.5 font-bold">Amount ($)</th>
+                                    <th class="p-3.5 font-bold">Due Date</th>
+                                    <th class="p-3.5 font-bold">Status</th>
+                                    <th class="p-3.5 font-bold text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="invoices-table-body" class="divide-y divide-slate-200 dark:divide-slate-700"><tr><td colspan="7" class="p-4 text-center text-slate-400">No active invoices issued. Click "Issue New Invoice" to generate billing records.</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. SYSTEM SETTINGS MODULE -->
+            <section id="tab-settings" class="tab-content space-y-6">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">System Configuration &amp; Branding</h1>
+                    <p class="text-xs text-slate-500">Customize institutional name, branding parameters, and workspace preferences</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="app-glass-card p-6 rounded-2xl shadow-sm space-y-5">
+                        <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-700/80 pb-3">
+                            <i class="fa-solid fa-building-columns text-brand-500"></i> Institutional Branding
+                        </h3>
+                        <form onsubmit="saveSchoolBranding(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold mb-1.5 text-slate-700 dark:text-slate-300">Custom School / Organization Name</label>
+                                <div class="relative">
+                                    <i class="fa-solid fa-signature absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                                    <input type="text" id="settings-school-name" required="" placeholder="e.g. EduPulse Academy" class="w-full bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl pl-10 pr-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                </div>
+                                <p class="text-[10px] text-slate-400 mt-1">This updates the header title and report cards across the entire platform instantly.</p>
+                            </div>
+                            <div class="pt-2">
+                                <button type="submit" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold rounded-xl shadow-md transition flex items-center gap-1.5">
+                                    <i class="fa-solid fa-floppy-disk"></i> Save Branding Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="app-glass-card p-6 rounded-2xl shadow-sm space-y-5">
+                        <h3 class="font-bold text-sm text-slate-800 dark:text-slate-100 flex items-center gap-2 border-b border-slate-200/80 dark:border-slate-700/80 pb-3">
+                            <i class="fa-solid fa-shield-halved text-emerald-500"></i> Workspace Preferences
+                        </h3>
+                        <div class="space-y-3 text-xs text-slate-600 dark:text-slate-300">
+                            <div class="flex items-center justify-between p-3 bg-slate-100/60 dark:bg-slate-900/60 rounded-xl">
+                                <div>
+                                    <p class="font-bold">Persistent Local Storage</p>
+                                    <p class="text-[10px] text-slate-400">All edits, student marks, and invoices are auto-saved locally.</p>
+                                </div>
+                                <span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full font-bold text-[10px]">Active</span>
+                            </div>
+                            <div class="flex items-center justify-between p-3 bg-slate-100/60 dark:bg-slate-900/60 rounded-xl">
+                                <div>
+                                    <p class="font-bold">Role-Based Access Control</p>
+                                    <p class="text-[10px] text-slate-400">Admin, Teacher, and Student permissions verified.</p>
+                                </div>
+                                <span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 rounded-full font-bold text-[10px]">Secure</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- MODALS -->
+
+    <!-- DEPLOYMENT MODAL -->
+    <div id="modal-deploy" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl max-w-lg w-full p-6 space-y-5 relative">
+            <button onclick="closeModal('modal-deploy')" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded-full text-[11px] font-bold mb-2">
+                    <i class="fa-solid fa-rocket"></i> Production Deployment Center
+                </div>
+                <h3 class="text-xl font-black text-slate-900 dark:text-white">Deploy EduPulse OS</h3>
+                <p class="text-xs text-slate-500 mt-1">Export standalone bundle, host on free web services, or download deployment package.</p>
+            </div>
+
+            <div class="space-y-3">
+                <div class="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center justify-between hover:border-emerald-500 transition">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-3 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 rounded-xl">
+                            <i class="fa-solid fa-file-code text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold">Standalone HTML Bundle</p>
+                            <p class="text-[10px] text-slate-400">Single self-contained file with embedded database</p>
+                        </div>
+                    </div>
+                    <button onclick="downloadProductionBundle()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition shadow-sm">
+                        <i class="fa-solid fa-download mr-1"></i> Download
+                    </button>
+                </div>
+
+                <div class="p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl flex items-center justify-between hover:border-black dark:hover:border-white transition">
+                    <div class="flex items-center space-x-3">
+                        <div class="p-3 bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-xl">
+                            <i class="fa-brands fa-github text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold">GitHub Pages / Vercel / Netlify</p>
+                            <p class="text-[10px] text-slate-400">Copy single-file code directly to host on free static servers</p>
+                        </div>
+                    </div>
+                    <button onclick="copySourceToClipboard()" class="px-3.5 py-2 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 text-white font-bold rounded-xl text-xs transition shadow-sm">
+                        <i class="fa-solid fa-copy mr-1"></i> Copy Code
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-3 bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800/50 rounded-xl text-[11px] text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                <i class="fa-solid fa-lightbulb text-amber-500 mt-0.5"></i>
+                <span><strong>Deployment Tip:</strong> For instant hosting, save the downloaded file as <code>index.html</code> and drag &amp; drop it directly into <a href="https://app.netlify.com/drop" target="_blank" class="underline font-bold">Netlify Drop</a> or Vercel.</span>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+                <button onclick="closeModal('modal-deploy')" class="px-4 py-2 text-xs font-semibold text-slate-500">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- QUICK ATTENDANCE MODAL -->
+    <div id="modal-attendance" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl max-w-lg w-full p-6 space-y-4 relative">
+            <button onclick="closeModal('modal-attendance')" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Daily Attendance Marking</h3>
+            <div class="space-y-3">
+                <p class="text-xs text-slate-500">Mark daily attendance for students in selected grade level.</p>
+                <div id="attendance-list-container" class="space-y-2 max-h-60 overflow-y-auto pr-1"><p class="text-xs text-slate-400 py-4 text-center">No enrolled students found to log attendance.</p></div>
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button onclick="closeModal('modal-attendance')" class="px-4 py-2 text-xs font-semibold text-slate-500">Cancel</button>
+                    <button onclick="submitAttendance()" class="px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow">Save Attendance Log</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TEACHER FORM MODAL -->
+    <div id="modal-teacher" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl max-w-lg w-full p-6 space-y-4 relative">
+            <button onclick="closeModal('modal-teacher')" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+            <h3 id="modal-teacher-title" class="text-lg font-bold text-slate-900 dark:text-white">Add Faculty Staff</h3>
+            <form onsubmit="saveTeacherForm(event)" class="space-y-3">
+                <input type="hidden" id="teacher-form-id">
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Full Name</label>
+                    <input type="text" id="teacher-form-name" required="" placeholder="Dr. John Doe" class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Email</label>
+                        <input type="email" id="teacher-form-email" required="" placeholder="john@edupulse.edu" class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Phone</label>
+                        <input type="text" id="teacher-form-phone" required="" placeholder="+1 555-0192" class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs">
+                    </div>
+                </div>
+                <div class="p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl space-y-2">
+                    <span class="text-[11px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider block">Login Account Key</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="block text-[11px] font-semibold mb-1">Account Password</label>
+                            <div class="relative">
+                                <input type="password" id="teacher-form-password" required="" placeholder="Set login password" class="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-3 pr-8 py-2 text-xs">
+                                <button type="button" onclick="togglePasswordVisibility('teacher-form-password', this)" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex items-end">
+                            <button type="button" onclick="generateRandomPassword('teacher-form-password')" class="w-full py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold transition">
+                                <i class="fa-solid fa-key mr-1"></i> Auto-Generate
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Department</label>
+                        <select id="teacher-form-dept" class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs">
+                            <option>Primary Education</option>
+                            <option>Science</option>
+                            <option>Mathematics</option>
+                            <option>Languages</option>
+                            <option>Social Studies</option>
+                            <option>Arts</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Primary Subject Lead</label>
+                        <input type="text" id="teacher-form-subject" required="" placeholder="Primary Mathematics" class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs">
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('modal-teacher')" class="px-4 py-2 text-xs font-semibold text-slate-500">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-md">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- STUDENT FORM MODAL -->
+    <div id="modal-student" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl max-w-xl w-full p-6 space-y-4 relative max-h-[90vh] overflow-y-auto">
+            <button onclick="closeModal('modal-student')" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+            <h3 id="modal-student-title" class="text-lg font-bold text-slate-900 dark:text-white">Enroll Student</h3>
+            <form onsubmit="saveStudentForm(event)" class="space-y-3">
+                <input type="hidden" id="student-form-id">
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Full Student Name</label>
+                    <input type="text" id="student-form-name" required="" placeholder="e.g. Liam Smith" class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Grade Level</label>
+                        <select id="student-form-grade" class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs">
+                            <optgroup label="Primary School">
+                                <option>Grade 1</option>
+                                <option>Grade 2</option>
+                                <option>Grade 3</option>
+                                <option>Grade 4</option>
+                                <option>Grade 5</option>
+                                <option>Grade 6</option>
+                                <option>Grade 7</option>
+                            </optgroup>
+                            <optgroup label="Secondary School">
+                                <option>Grade 10</option>
+                                <option>Grade 11</option>
+                                <option>Grade 12</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Student Email</label>
+                        <input type="email" id="student-form-email" required="" placeholder="liam@edupulse.edu" class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Guardian Email</label>
+                    <input type="email" id="student-form-guardian" required="" placeholder="parent@example.com" class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold mb-1.5">Enrolled Subjects / Course Load</label>
+                    <div class="space-y-3 p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs max-h-48 overflow-y-auto">
+                        <div class="grid grid-cols-2 gap-2">
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" name="student-subjects" value="English Language" class="rounded text-brand-600"><span>English Language</span></label>
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" name="student-subjects" value="Primary Mathematics" class="rounded text-brand-600"><span>Primary Mathematics</span></label>
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" name="student-subjects" value="Integrated Science" class="rounded text-brand-600"><span>Integrated Science</span></label>
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" name="student-subjects" value="Social Studies" class="rounded text-brand-600"><span>Social Studies</span></label>
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" name="student-subjects" value="Physics" class="rounded text-brand-600"><span>Physics</span></label>
+                            <label class="flex items-center space-x-2 cursor-pointer"><input type="checkbox" name="student-subjects" value="Computer Science" class="rounded text-brand-600"><span>Computer Science</span></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('modal-student')" class="px-4 py-2 text-xs font-semibold text-slate-500">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-md">Save Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- INVOICE FORM MODAL -->
+    <div id="modal-invoice" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl max-w-md w-full p-6 space-y-4 relative">
+            <button onclick="closeModal('modal-invoice')" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600">
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Issue Fee Invoice</h3>
+            <form onsubmit="saveInvoiceForm(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Select Student</label>
+                    <select id="invoice-form-student" class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold mb-1">Description</label>
+                    <input type="text" id="invoice-form-desc" required="" placeholder="e.g. Term 3 Tuition Fee" class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Amount ($)</label>
+                        <input type="number" id="invoice-form-amount" required="" placeholder="850" class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold mb-1">Due Date</label>
+                        <input type="date" id="invoice-form-date" required="" class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs">
+                    </div>
+                </div>
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="closeModal('modal-invoice')" class="px-4 py-2 text-xs font-semibold text-slate-500">Cancel</button>
+                    <button type="submit" class="px-4 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-md">Create Invoice</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PRINTABLE REPORT CARD HIDDEN TEMPLATE -->
+    <div id="printable-area" class="hidden p-8 bg-white text-slate-900 space-y-6">
+        <div class="flex justify-between items-center border-b pb-4">
+            <div>
+                <h1 class="text-2xl font-bold">EDUPULSE ACADEMY</h1>
+                <p class="text-xs text-slate-500">Official Academic Progress Report</p>
+            </div>
+            <div class="text-right text-xs">
+                <p class="font-bold">Academic Term 2026</p>
+            </div>
+        </div>
+        <div id="report-card-details" class="text-xs space-y-2"></div>
+    </div>
+
+    <!-- SCRIPT ENGINE -->
+    <script>
+        const memoryStorage = {};
+        const SafeStorage = {
+            getItem: (key) => { try { return localStorage.getItem(key); } catch (e) { return memoryStorage[key] || null; } },
+            setItem: (key, val) => { try { localStorage.setItem(key, val); } catch (e) { memoryStorage[key] = String(val); } },
+            removeItem: (key) => { try { localStorage.removeItem(key); } catch (e) { delete memoryStorage[key]; } }
+        };
+        const SafeSessionStorage = {
+            getItem: (key) => { try { return sessionStorage.getItem(key); } catch (e) { return memoryStorage['session_' + key] || null; } },
+            setItem: (key, val) => { try { sessionStorage.setItem(key, val); } catch (e) { memoryStorage['session_' + key] = String(val); } },
+            removeItem: (key) => { try { sessionStorage.removeItem(key); } catch (e) { delete memoryStorage['session_' + key]; } }
+        };
+
+        let currentUser = null;
+
+        function dbGet(key) { try { return JSON.parse(SafeStorage.getItem(key)) || []; } catch(e) { return []; } }
+        function dbSet(key, val) { SafeStorage.setItem(key, JSON.stringify(val)); }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const identifier = document.getElementById('login-identifier').value.trim();
+            const password = document.getElementById('login-password').value;
+            const remember = document.getElementById('login-remember').checked;
+
+            const users = dbGet('ep_users');
+            const user = users.find(u => (u.identifier === identifier || u.username === identifier) && u.password === password);
+
+            if (user) {
+                currentUser = user;
+                const storage = remember ? SafeStorage : SafeSessionStorage;
+                storage.setItem('ep_session', JSON.stringify(user));
+                bootApp();
+                showToast(`Welcome back, ${user.name}!`, 'success');
+            } else {
+                showToast('Invalid credentials. Check username/password.', 'error');
+            }
+        }
+
+        function handleLogout() {
+            SafeStorage.removeItem('ep_session');
+            SafeSessionStorage.removeItem('ep_session');
+            currentUser = null;
+            document.getElementById('app-wrapper').classList.add('hidden');
+            document.getElementById('auth-screen').classList.remove('hidden');
+            showToast('Signed out of production session.', 'info');
+        }
+
+        function resetSystemData() {
+            if (!confirm("Are you sure you want to reset all stored students, faculty, and invoices? This action cannot be undone.")) return;
+            SafeStorage.removeItem('ep_students');
+            SafeStorage.removeItem('ep_teachers');
+            SafeStorage.removeItem('ep_invoices');
+            dbInit();
+            updateKPIs();
+            renderTeachersTable();
+            renderStudentsTable();
+            renderGradebookTable();
+            renderInvoicesTable();
+            initCharts();
+            showToast('System data reset to initial state.', 'info');
+        }
+
+        function dbInit() {
+            let users = dbGet('ep_users');
+            if (!users || users.length === 0) {
+                const defaultAdmin = {
+                    id: Date.now(),
+                    identifier: 'josam2403@gmail.com',
+                    username: 'josam',
+                    phone: '',
+                    password: '1',
+                    role: 'Admin',
+                    name: 'Primary Administrator',
+                    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'
+                };
+                users = [defaultAdmin];
+                dbSet('ep_users', users);
+            } else {
+                const adminIndex = users.findIndex(u => u.role === 'Admin');
+                if (adminIndex !== -1) {
+                    users[adminIndex].identifier = users[adminIndex].identifier || 'josam2403@gmail.com';
+                    users[adminIndex].username = users[adminIndex].username || 'josam';
+                    users[adminIndex].password = users[adminIndex].password || '1';
+                    dbSet('ep_users', users);
+                }
+            }
+            if (!SafeStorage.getItem('ep_students')) dbSet('ep_students', []);
+            if (!SafeStorage.getItem('ep_teachers')) dbSet('ep_teachers', []);
+            if (!SafeStorage.getItem('ep_invoices')) dbSet('ep_invoices', []);
+        }
+
+        function registerProductionAdmin() {
+            const email = prompt('Enter primary admin email address:');
+            if (!email) return;
+            const password = prompt('Set strong admin account password:');
+            if (!password) return;
+            const name = prompt('Enter full name of Administrator:') || 'Administrator';
+
+            const users = dbGet('ep_users');
+            if (users.some(u => u.identifier === email)) {
+                showToast('An account with this email already exists.', 'error');
+                return;
+            }
+
+            const newAdmin = {
+                id: Date.now(),
+                identifier: email,
+                username: email.split('@')[0],
+                phone: '',
+                password: password,
+                role: 'Admin',
+                name: name,
+                avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100'
+            };
+
+            users.push(newAdmin);
+            dbSet('ep_users', users);
+            showToast('Primary Administrator registered. You may now log in.', 'success');
+        }
+
+        function checkSession() {
+            const saved = SafeStorage.getItem('ep_session') || SafeSessionStorage.getItem('ep_session');
+            if (saved) {
+                try { currentUser = JSON.parse(saved); bootApp(); } catch (e) { currentUser = null; }
+            }
+        }
+
+        function togglePasswordVisibility(inputId, btn) {
+            const el = document.getElementById(inputId);
+            if (el.type === 'password') {
+                el.type = 'text';
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+            } else {
+                el.type = 'password';
+                btn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+            }
+        }
+
+        function bootApp() {
+            document.getElementById('auth-screen').classList.add('hidden');
+            document.getElementById('app-wrapper').classList.remove('hidden');
+
+            document.getElementById('nav-user-name').innerText = currentUser.name;
+            document.getElementById('nav-user-email').innerText = currentUser.identifier;
+            document.getElementById('nav-user-avatar').src = currentUser.avatar;
+            document.getElementById('header-role-badge').innerText = currentUser.role;
+
+            buildMenuByRBAC();
+            updateKPIs();
+            renderTeachersTable();
+            renderStudentsTable();
+            renderGradebookTable();
+            renderInvoicesTable();
+            initCharts();
+            populateAttendanceModal();
+            populateInvoiceStudentDropdown();
+        }
+
+        function buildMenuByRBAC() {
+            const nav = document.getElementById('nav-menu');
+            nav.innerHTML = '';
+            let tabs = [{ id: 'overview', label: 'Overview', icon: 'fa-gauge' }];
+
+            if (currentUser.role === 'Admin') {
+                tabs.push({ id: 'teachers', label: 'Faculty', icon: 'fa-chalkboard-user' });
+                tabs.push({ id: 'students', label: 'Students', icon: 'fa-user-graduate' });
+                tabs.push({ id: 'grading', label: 'Gradebook', icon: 'fa-pen-to-square' });
+                tabs.push({ id: 'billing', label: 'Billing', icon: 'fa-file-invoice-dollar' });
+                tabs.push({ id: 'settings', label: 'Settings', icon: 'fa-gear' });
+            } else if (currentUser.role === 'Teacher') {
+                tabs.push({ id: 'students', label: 'Students', icon: 'fa-user-graduate' });
+                tabs.push({ id: 'grading', label: 'Gradebook', icon: 'fa-pen-to-square' });
+                tabs.push({ id: 'settings', label: 'Settings', icon: 'fa-gear' });
+            } else {
+                tabs.push({ id: 'grading', label: 'My Report Card', icon: 'fa-pen-to-square' });
+                tabs.push({ id: 'billing', label: 'Fees & Invoices', icon: 'fa-file-invoice-dollar' });
+            }
+
+            tabs.forEach((tab, index) => {
+                const btn = document.createElement('button');
+                btn.className = `px-3.5 py-1.5 rounded-xl flex items-center space-x-1.5 transition ${index === 0 ? 'bg-brand-600 text-white shadow-md' : 'hover:bg-slate-200 dark:hover:bg-slate-800'}`;
+                btn.id = `nav-tab-${tab.id}`;
+                btn.onclick = () => switchTab(tab.id);
+                btn.innerHTML = `<i class="fa-solid ${tab.icon}"></i><span>${tab.label}</span>`;
+                nav.appendChild(btn);
+            });
+            switchTab('overview');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            document.querySelectorAll('#nav-menu button').forEach(btn => {
+                btn.className = 'px-3.5 py-1.5 rounded-xl flex items-center space-x-1.5 transition hover:bg-slate-200 dark:hover:bg-slate-800';
+            });
+            const activeBtn = document.getElementById(`nav-tab-${tabId}`);
+            if (activeBtn) activeBtn.className = 'px-3.5 py-1.5 rounded-xl flex items-center space-x-1.5 transition bg-brand-600 text-white shadow-md';
+
+            if (tabId === 'settings') {
+                const schoolName = SafeStorage.getItem('ep_school_name') || 'EduPulse';
+                document.getElementById('settings-school-name').value = schoolName;
+            }
+        }
+
+        function saveSchoolBranding(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('settings-school-name').value.trim();
+            if (!nameInput) return;
+            SafeStorage.setItem('ep_school_name', nameInput);
+            applySchoolBranding();
+            showToast(`School name updated to "${nameInput}" successfully!`, 'success');
+        }
+
+        function applySchoolBranding() {
+            const schoolName = SafeStorage.getItem('ep_school_name') || 'EduPulse';
+            const brandEl = document.getElementById('header-school-brand');
+            if (brandEl) brandEl.innerText = schoolName;
+        }
+
+        function populateInvoiceStudentDropdown() {
+            const select = document.getElementById('invoice-form-student');
+            if (!select) return;
+            const students = dbGet('ep_students') || [];
+            select.innerHTML = students.map(s => `<option value="${s.id}">${s.name} (${s.grade})</option>`).join('');
+        }
+
+        function populateAttendanceModal() {
+            const container = document.getElementById('attendance-list-container');
+            const students = dbGet('ep_students') || [];
+            container.innerHTML = '';
+            if (students.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-400 py-4 text-center">No enrolled students found to log attendance.</p>';
+                return;
+            }
+            students.forEach(s => {
+                container.innerHTML += `
+                    <div class="flex items-center justify-between p-2.5 bg-slate-100 dark:bg-slate-900 rounded-xl text-xs">
+                        <span class="font-bold">${s.name} (${s.grade})</span>
+                        <div class="flex items-center space-x-2">
+                            <label class="flex items-center space-x-1"><input type="radio" name="att-${s.id}" value="Present" checked> <span>Present</span></label>
+                            <label class="flex items-center space-x-1"><input type="radio" name="att-${s.id}" value="Absent"> <span class="text-red-500">Absent</span></label>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function submitAttendance() {
+            closeModal('modal-attendance');
+            showToast('Attendance logged for current session.', 'success');
+        }
+
+        function triggerBroadcastNotice() {
+            const msg = prompt('Enter notice message for students & teachers:');
+            if (msg) showToast(`Broadcast Sent: "${msg}"`, 'info');
+        }
+
+        function handleGlobalSearch(query) {
+            if (!query) return;
+            showToast(`Filtering records for "${query}"...`, 'info');
+        }
+
+        function renderTeachersTable() {
+            const list = dbGet('ep_teachers') || [];
+            const users = dbGet('ep_users') || [];
+            const tbody = document.getElementById('teachers-table-body');
+            tbody.innerHTML = '';
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400">No faculty records found. Click "Add Faculty" to register teachers.</td></tr>`;
+                return;
+            }
+
+            list.forEach(t => {
+                const teacherUser = users.find(u => u.identifier === t.email);
+                const pass = teacherUser ? teacherUser.password : '******';
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 dark:hover:bg-slate-700/30";
+                tr.innerHTML = `
+                    <td class="p-3.5 font-bold">${t.name}</td>
+                    <td class="p-3.5"><span class="px-2 py-0.5 bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 rounded-md font-semibold">${t.dept}</span></td>
+                    <td class="p-3.5">${t.subject}</td>
+                    <td class="p-3.5">${t.phone}</td>
+                    <td class="p-3.5"><span class="font-mono text-brand-600 font-bold">${pass}</span></td>
+                    <td class="p-3.5"><span class="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full font-semibold">${t.status}</span></td>
+                    <td class="p-3.5 text-right space-x-1">
+                        <button onclick="editTeacher(${t.id})" class="p-1.5 text-blue-500"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteTeacher(${t.id})" class="p-1.5 text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderStudentsTable() {
+            const list = dbGet('ep_students') || [];
+            const tbody = document.getElementById('students-table-body');
+            tbody.innerHTML = '';
+
+            if (list.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">No student enrollments found. Click "Enroll Student" to create records.</td></tr>`;
+                return;
+            }
+
+            list.forEach(s => {
+                const gpa = (((s.midterm*0.4)+(s.lab*0.3)+(s.final*0.3))/25).toFixed(2);
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 dark:hover:bg-slate-700/30";
+                tr.innerHTML = `
+                    <td class="p-3.5 font-bold">${s.name}</td>
+                    <td class="p-3.5 font-mono text-[11px] text-slate-500">${s.code}</td>
+                    <td class="p-3.5">${s.grade}</td>
+                    <td class="p-3.5">${(s.subjects || []).join(', ')}</td>
+                    <td class="p-3.5 text-slate-500">${s.guardian}</td>
+                    <td class="p-3.5 font-extrabold text-brand-600">${gpa}</td>
+                    <td class="p-3.5"><span class="px-2 py-0.5 ${s.feeStatus === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'} rounded-full font-bold">${s.feeStatus}</span></td>
+                    <td class="p-3.5 text-right space-x-1">
+                        <button onclick="editStudent(${s.id})" class="p-1.5 text-blue-500"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteStudent(${s.id})" class="p-1.5 text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderGradebookTable() {
+            const students = dbGet('ep_students') || [];
+            const tbody = document.getElementById('gradebook-table-body');
+            tbody.innerHTML = '';
+
+            if (students.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-slate-400">No marksheet records available. Enroll students to enable grade tracking.</td></tr>`;
+                document.getElementById('marksheet-class-avg').innerText = '--';
+                document.getElementById('marksheet-highest-score').innerText = '--';
+                document.getElementById('marksheet-total-students').innerText = '0';
+                return;
+            }
+
+            let total = 0, highest = 0;
+            students.forEach(s => {
+                const avg = parseFloat(((s.midterm * 0.4) + (s.lab * 0.3) + (s.final * 0.3)).toFixed(1));
+                total += avg; if (avg > highest) highest = avg;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-3.5 font-bold">${s.name}</td>
+                    <td class="p-3.5">${s.grade}</td>
+                    <td class="p-3.5"><input type="number" value="${s.midterm}" onchange="updateGradeScore(${s.id}, 'midterm', this.value)" class="w-16 bg-slate-100 dark:bg-slate-900 border rounded-lg px-2 py-1 text-xs"></td>
+                    <td class="p-3.5"><input type="number" value="${s.lab}" onchange="updateGradeScore(${s.id}, 'lab', this.value)" class="w-16 bg-slate-100 dark:bg-slate-900 border rounded-lg px-2 py-1 text-xs"></td>
+                    <td class="p-3.5"><input type="number" value="${s.final}" onchange="updateGradeScore(${s.id}, 'final', this.value)" class="w-16 bg-slate-100 dark:bg-slate-900 border rounded-lg px-2 py-1 text-xs"></td>
+                    <td class="p-3.5 font-extrabold text-brand-600">${avg}%</td>
+                    <td class="p-3.5"><span class="px-2.5 py-1 bg-brand-100 text-brand-800 font-bold rounded-md">${avg >= 90 ? 'A' : avg >= 80 ? 'B' : 'C'}</span></td>
+                    <td class="p-3.5 text-right"><button onclick="printReportCard(${s.id})" class="p-1.5 text-brand-600"><i class="fa-solid fa-print"></i></button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (students.length) {
+                document.getElementById('marksheet-class-avg').innerText = (total / students.length).toFixed(1) + '%';
+                document.getElementById('marksheet-highest-score').innerText = highest.toFixed(1) + '%';
+                document.getElementById('marksheet-total-students').innerText = students.length;
+            }
+        }
+
+        function renderInvoicesTable() {
+            const invoices = dbGet('ep_invoices') || [];
+            const tbody = document.getElementById('invoices-table-body');
+            tbody.innerHTML = '';
+
+            if (invoices.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-400">No active invoices issued. Click "Issue New Invoice" to generate billing records.</td></tr>`;
+                return;
+            }
+
+            invoices.forEach(inv => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="p-3.5 font-mono text-[11px] font-bold">${inv.id}</td>
+                    <td class="p-3.5 font-semibold">${inv.studentName}</td>
+                    <td class="p-3.5">${inv.desc}</td>
+                    <td class="p-3.5 font-bold">$${inv.amount}.00</td>
+                    <td class="p-3.5">${inv.date}</td>
+                    <td class="p-3.5"><span class="px-2 py-0.5 ${inv.status === 'Paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'} rounded-full font-bold">${inv.status}</span></td>
+                    <td class="p-3.5 text-right">
+                        ${inv.status === 'Unpaid' ? `<button onclick="markInvoicePaid('${inv.id}')" class="px-2 py-1 bg-emerald-600 text-white rounded-lg text-[10px] font-bold">Mark Paid</button>` : `<span class="text-xs text-slate-400">Settled</span>`}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function updateGradeScore(studentId, field, val) {
+            const list = dbGet('ep_students');
+            const s = list.find(x => x.id === studentId);
+            if (s) {
+                s[field] = parseFloat(val) || 0;
+                dbSet('ep_students', list);
+                renderGradebookTable();
+                showToast('Marksheet updated.', 'info');
+            }
+        }
+
+        function markInvoicePaid(invId) {
+            const invoices = dbGet('ep_invoices');
+            const inv = invoices.find(i => i.id === invId);
+            if (inv) {
+                inv.status = 'Paid';
+                dbSet('ep_invoices', invoices);
+                const students = dbGet('ep_students');
+                const s = students.find(x => x.id === inv.studentId);
+                if (s) { s.feeStatus = 'Paid'; dbSet('ep_students', students); }
+                renderInvoicesTable();
+                renderStudentsTable();
+                updateKPIs();
+                showToast('Invoice status updated to Paid.', 'success');
+            }
+        }
+
+        function generateRandomPassword(targetId) {
+            const chars = 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let pass = '';
+            for (let i = 0; i < 8; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+            const input = document.getElementById(targetId);
+            if (input) { input.value = pass; input.type = 'text'; }
+        }
+
+        function updateKPIs() {
+            const students = dbGet('ep_students') || [];
+            const teachers = dbGet('ep_teachers') || [];
+            const invoices = dbGet('ep_invoices') || [];
+
+            document.getElementById('kpi-students-count').innerText = students.length;
+            document.getElementById('kpi-teachers-count').innerText = teachers.length;
+
+            const totalRevenue = invoices.filter(i => i.status === 'Paid').reduce((acc, i) => acc + i.amount, 0);
+            document.getElementById('kpi-revenue').innerText = '$' + totalRevenue.toLocaleString();
+        }
+
+        let enrollmentChart = null;
+        let feeChart = null;
+
+        function initCharts() {
+            const students = dbGet('ep_students') || [];
+            const invoices = dbGet('ep_invoices') || [];
+
+            const paidCount = invoices.filter(i => i.status === 'Paid').length;
+            const unpaidCount = invoices.filter(i => i.status === 'Unpaid').length;
+
+            const ctx1 = document.getElementById('chart-enrollment').getContext('2d');
+            if (enrollmentChart) enrollmentChart.destroy();
+            enrollmentChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Current'],
+                    datasets: [{ label: 'Active Enrolments', data: [0, Math.round(students.length * 0.3), Math.round(students.length * 0.5), Math.round(students.length * 0.8), students.length, students.length], borderColor: '#6366f1', fill: true, backgroundColor: 'rgba(99, 102, 241, 0.1)', tension: 0.3 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const ctx2 = document.getElementById('chart-fees').getContext('2d');
+            if (feeChart) feeChart.destroy();
+            feeChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Settled Invoices', 'Outstanding Receivables'],
+                    datasets: [{ data: [paidCount || 1, unpaidCount], backgroundColor: ['#10b981', '#ef4444'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            SafeStorage.setItem('ep_theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bg = type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-slate-800';
+            toast.className = `${bg} text-white px-4 py-3 rounded-xl shadow-xl text-xs font-semibold flex items-center space-x-2 transition pointer-events-auto`;
+            toast.innerHTML = `<i class="fa-solid fa-circle-info"></i><span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function saveTeacherForm(e) {
+            e.preventDefault();
+            const id = document.getElementById('teacher-form-id').value;
+            const name = document.getElementById('teacher-form-name').value.trim();
+            const email = document.getElementById('teacher-form-email').value.trim();
+            const phone = document.getElementById('teacher-form-phone').value.trim();
+            const password = document.getElementById('teacher-form-password').value;
+            const dept = document.getElementById('teacher-form-dept').value;
+            const subject = document.getElementById('teacher-form-subject').value.trim();
+
+            let teachers = dbGet('ep_teachers');
+            let users = dbGet('ep_users');
+
+            if (id) {
+                const tIndex = teachers.findIndex(x => String(x.id) === String(id));
+                if (tIndex !== -1) {
+                    const oldEmail = teachers[tIndex].email;
+                    teachers[tIndex] = { ...teachers[tIndex], name, email, phone, dept, subject };
+
+                    const uIndex = users.findIndex(u => u.identifier === oldEmail || String(u.id) === String(id));
+                    if (uIndex !== -1) {
+                        users[uIndex].identifier = email;
+                        users[uIndex].name = name;
+                        users[uIndex].phone = phone;
+                        if (password) users[uIndex].password = password;
+                    }
+                }
+                showToast('Faculty record updated successfully.', 'success');
+            } else {
+                const newId = Date.now();
+                const newTeacher = { id: newId, name, email, phone, dept, subject, status: 'Active' };
+                teachers.push(newTeacher);
+
+                const newTeacherUser = {
+                    id: newId,
+                    identifier: email,
+                    username: email.split('@')[0],
+                    phone: phone,
+                    password: password || 'teacher123',
+                    role: 'Teacher',
+                    name: name,
+                    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100'
+                };
+                users.push(newTeacherUser);
+                showToast('New faculty staff registered.', 'success');
+            }
+
+            dbSet('ep_teachers', teachers);
+            dbSet('ep_users', users);
+            closeModal('modal-teacher');
+
+            document.getElementById('teacher-form-id').value = '';
+            document.getElementById('teacher-form-name').value = '';
+            document.getElementById('teacher-form-email').value = '';
+            document.getElementById('teacher-form-phone').value = '';
+            document.getElementById('teacher-form-password').value = '';
+
+            renderTeachersTable();
+            updateKPIs();
+        }
+
+        function editTeacher(id) {
+            const teachers = dbGet('ep_teachers');
+            const users = dbGet('ep_users');
+            const t = teachers.find(x => String(x.id) === String(id));
+            if (!t) return;
+
+            const u = users.find(x => x.identifier === t.email);
+
+            document.getElementById('teacher-form-id').value = t.id;
+            document.getElementById('teacher-form-name').value = t.name;
+            document.getElementById('teacher-form-email').value = t.email;
+            document.getElementById('teacher-form-phone').value = t.phone || '';
+            document.getElementById('teacher-form-dept').value = t.dept;
+            document.getElementById('teacher-form-subject').value = t.subject;
+            document.getElementById('teacher-form-password').value = u ? u.password : '';
+            document.getElementById('modal-teacher-title').innerText = 'Edit Faculty Staff';
+
+            openModal('modal-teacher');
+        }
+
+        function deleteTeacher(id) {
+            if (!confirm('Are you sure you want to remove this faculty record?')) return;
+            let teachers = dbGet('ep_teachers');
+            const t = teachers.find(x => String(x.id) === String(id));
+
+            teachers = teachers.filter(x => String(x.id) !== String(id));
+            dbSet('ep_teachers', teachers);
+
+            if (t) {
+                let users = dbGet('ep_users');
+                users = users.filter(u => u.identifier !== t.email);
+                dbSet('ep_users', users);
+            }
+
+            showToast('Faculty member removed.', 'info');
+            renderTeachersTable();
+            updateKPIs();
+        }
+
+        function saveStudentForm(e) {
+            e.preventDefault();
+            const id = document.getElementById('student-form-id').value;
+            const name = document.getElementById('student-form-name').value.trim();
+            const grade = document.getElementById('student-form-grade').value;
+            const email = document.getElementById('student-form-email').value.trim();
+            const guardian = document.getElementById('student-form-guardian').value.trim();
+
+            const selectedSubjects = Array.from(document.querySelectorAll('input[name="student-subjects"]:checked')).map(cb => cb.value);
+
+            let students = dbGet('ep_students');
+
+            if (id) {
+                const sIndex = students.findIndex(x => String(x.id) === String(id));
+                if (sIndex !== -1) {
+                    students[sIndex] = {
+                        ...students[sIndex],
+                        name, grade, email, guardian,
+                        subjects: selectedSubjects.length ? selectedSubjects : students[sIndex].subjects
+                    };
+                }
+                showToast('Student record updated.', 'success');
+            } else {
+                const newStudent = {
+                    id: Date.now(),
+                    code: 'STU-' + Math.floor(1000 + Math.random() * 9000),
+                    name, grade, email, guardian,
+                    subjects: selectedSubjects.length ? selectedSubjects : ['English Language', 'Primary Mathematics'],
+                    midterm: 80, lab: 85, final: 82,
+                    feeStatus: 'Unpaid'
+                };
+                students.push(newStudent);
+                showToast('Student enrolled successfully.', 'success');
+            }
+
+            dbSet('ep_students', students);
+            closeModal('modal-student');
+
+            document.getElementById('student-form-id').value = '';
+            document.getElementById('student-form-name').value = '';
+            document.getElementById('student-form-email').value = '';
+            document.getElementById('student-form-guardian').value = '';
+            document.querySelectorAll('input[name="student-subjects"]').forEach(cb => cb.checked = false);
+
+            renderStudentsTable();
+            renderGradebookTable();
+            updateKPIs();
+            populateAttendanceModal();
+            populateInvoiceStudentDropdown();
+        }
+
+        function editStudent(id) {
+            const students = dbGet('ep_students');
+            const s = students.find(x => String(x.id) === String(id));
+            if (!s) return;
+
+            document.getElementById('student-form-id').value = s.id;
+            document.getElementById('student-form-name').value = s.name;
+            document.getElementById('student-form-grade').value = s.grade;
+            document.getElementById('student-form-email').value = s.email;
+            document.getElementById('student-form-guardian').value = s.guardian;
+
+            document.querySelectorAll('input[name="student-subjects"]').forEach(cb => {
+                cb.checked = (s.subjects || []).includes(cb.value);
+            });
+
+            document.getElementById('modal-student-title').innerText = 'Edit Student Enrollment';
+            openModal('modal-student');
+        }
+
+        function deleteStudent(id) {
+            if (!confirm('Are you sure you want to delete this student profile?')) return;
+            let students = dbGet('ep_students');
+            students = students.filter(x => String(x.id) !== String(id));
+            dbSet('ep_students', students);
+
+            let invoices = dbGet('ep_invoices');
+            invoices = invoices.filter(x => String(x.studentId) !== String(id));
+            dbSet('ep_invoices', invoices);
+
+            showToast('Student record deleted.', 'info');
+            renderStudentsTable();
+            renderGradebookTable();
+            renderInvoicesTable();
+            updateKPIs();
+            populateAttendanceModal();
+            populateInvoiceStudentDropdown();
+        }
+
+        function saveInvoiceForm(e) {
+            e.preventDefault();
+            const studentId = document.getElementById('invoice-form-student').value;
+            const desc = document.getElementById('invoice-form-desc').value.trim();
+            const amount = parseFloat(document.getElementById('invoice-form-amount').value) || 0;
+            const date = document.getElementById('invoice-form-date').value;
+
+            const students = dbGet('ep_students');
+            const student = students.find(s => String(s.id) === String(studentId));
+
+            if (!student) {
+                showToast('Please select a valid student.', 'error');
+                return;
+            }
+
+            const invoices = dbGet('ep_invoices');
+            const newInv = {
+                id: 'INV-' + Math.floor(1000 + Math.random() * 9000),
+                studentId: student.id,
+                studentName: student.name,
+                desc: desc,
+                amount: amount,
+                date: date,
+                status: 'Unpaid'
+            };
+
+            invoices.push(newInv);
+            dbSet('ep_invoices', invoices);
+
+            student.feeStatus = 'Unpaid';
+            dbSet('ep_students', students);
+
+            closeModal('modal-invoice');
+            renderInvoicesTable();
+            renderStudentsTable();
+            updateKPIs();
+            showToast('New fee invoice generated.', 'success');
+        }
+
+        function exportTableToCSV(type) {
+            let data = [], filename = `${type}_records.csv`;
+            if (type === 'teachers') data = dbGet('ep_teachers');
+            else if (type === 'students') data = dbGet('ep_students');
+
+            if (!data.length) { showToast('No records to export.', 'error'); return; }
+
+            const keys = Object.keys(data[0]);
+            let csv = keys.join(',') + '\n';
+            data.forEach(row => {
+                csv += keys.map(k => `"${String(row[k] || '').replace(/"/g, '""')}"`).join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showToast(`Exported ${type} dataset to CSV.`, 'success');
+        }
+
+        function exportClassMarksheet() {
+            const students = dbGet('ep_students');
+            if (!students.length) { showToast('No marksheets available.', 'error'); return; }
+            let csv = 'Student Name,Grade,Midterm (40%),Assignments (30%),Final Exam (30%),Overall Score,Letter Grade\n';
+            students.forEach(s => {
+                const avg = ((s.midterm * 0.4) + (s.lab * 0.3) + (s.final * 0.3)).toFixed(1);
+                const letter = avg >= 90 ? 'A' : avg >= 80 ? 'B' : 'C';
+                csv += `"${s.name}","${s.grade}",${s.midterm},${s.lab},${s.final},${avg}%,${letter}\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'class_marksheets.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showToast('Class marksheets exported.', 'success');
+        }
+
+        function printReportCard(studentId) {
+            const students = dbGet('ep_students');
+            const s = students.find(x => String(x.id) === String(studentId));
+            if (!s) return;
+
+            const avg = ((s.midterm * 0.4) + (s.lab * 0.3) + (s.final * 0.3)).toFixed(1);
+            const details = document.getElementById('report-card-details');
+            details.innerHTML = `
+                <div class="grid grid-cols-2 gap-4 my-4 p-4 bg-slate-50 border rounded-xl">
+                    <div><strong>Student Name:</strong> ${s.name}</div>
+                    <div><strong>ID Code:</strong> ${s.code}</div>
+                    <div><strong>Grade Level:</strong> ${s.grade}</div>
+                    <div><strong>Guardian:</strong> ${s.guardian}</div>
+                </div>
+                <table class="w-full text-left border my-4 text-xs">
+                    <thead><tr class="bg-slate-100"><th class="p-2 border">Assessment Component</th><th class="p-2 border">Weight</th><th class="p-2 border">Score</th></tr></thead>
+                    <tbody>
+                        <tr><td class="p-2 border">Midterm Assessment</td><td class="p-2 border">40%</td><td class="p-2 border">${s.midterm}%</td></tr>
+                        <tr><td class="p-2 border">Assignments & Labs</td><td class="p-2 border">30%</td><td class="p-2 border">${s.lab}%</td></tr>
+                        <tr><td class="p-2 border">Final Examination</td><td class="p-2 border">30%</td><td class="p-2 border">${s.final}%</td></tr>
+                    </tbody>
+                </table>
+                <div class="text-right p-4 bg-slate-100 rounded-xl">
+                    <span class="text-base font-bold">Calculated Term Score: ${avg}%</span>
+                </div>
+            `;
+            window.print();
+        }
+
+        function downloadProductionBundle() {
+            const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'edupulse-os-production.html';
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showToast('Production HTML Bundle downloaded successfully!', 'success');
+        }
+
+        function copySourceToClipboard() {
+            const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            const textarea = document.createElement('textarea');
+            textarea.value = htmlContent;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            showToast('Complete application source code copied to clipboard!', 'success');
+        }
+
+        window.onload = function() {
+            dbInit();
+            if (SafeStorage.getItem('ep_theme') === 'dark') document.documentElement.classList.add('dark');
+            applySchoolBranding();
+            checkSession();
+        };
+    </script>
+
+</body></html>
