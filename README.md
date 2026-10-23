@@ -1,4 +1,4 @@
-[index.html](https://github.com/user-attachments/files/33821986/index.html)
+
 <!DOCTYPE html>
 <html lang="en" class="light">
 <head>
